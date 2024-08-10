@@ -1,0 +1,73 @@
+Steps to install Docker, Kubernetes, Selenium Grid
+
+# Update the package list and install Docker
+sudo apt update
+
+sudo apt install -y docker.io
+
+sudo chmod 777 /var/run/docker.sock
+
+# Install Docker Compose
+sudo apt install -y docker-compose
+
+# Install prerequisites for Kubernetes
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+
+# Add Kubernetes signing key
+sudo mkdir -p /etc/apt/keyrings/
+
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+# Add Kubernetes repository
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
+
+# Update package list and install Kubernetes tools
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+
+# Initialize the Kubernetes cluster
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+
+# Set up kubeconfig for the regular user
+mkdir -p $HOME/.kube
+
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# Apply a pod network add-on (Flannel)
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+# Copy Selenium hub, Service, Node to a location
+# Create and apply Kubernetes resources for Selenium Hub
+vi selenium-hub-deployment.yaml
+nano 
+
+kubectl apply -f selenium-hub-deployment.yaml
+
+# (Insert your Selenium Hub deployment YAML content here)
+vi selenium-hub-svc.yaml
+
+# (Insert your Selenium Hub service YAML content here)
+kubectl apply -f selenium-hub-svc.yaml
+
+# Ensure that the Selenium hub is running and accessible
+kubectl get pods -l app=selenium-hub
+
+# Open the browser and confirm the hub is exposed publicly: http://Your_Public_IP:32000/ui#
+
+# Create Kubernetes resources for Selenium Chrome nodes
+vi selenium-node-chrome-deployment.yaml
+
+# (Insert your Selenium Node Chrome deployment YAML content here)
+kubectl apply -f selenium-node-chrome-deployment.yaml
+
+# Check the status of all resources
+kubectl get all
+
+# Wait for the Selenium Chrome nodes to enter the running state Open the browser and confirm nodes are mapped: 
+http://Your_Public_IP:32000/ui
